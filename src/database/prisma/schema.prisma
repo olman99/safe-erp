@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  workspace String
+  email     String    @unique
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz()
+  user      User[]
+
+  @@map("tenant")
+}
+
+model User {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username        String    @unique
+  password        String
+  email           String    @unique
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  lastLogin       DateTime? @map("last_login")
+  tenantId        String    @map("tenant_id") @db.Uuid
+  isOnline        Boolean   @default(false) @map("is_online")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz()
+  createdBy       String    @map("created_by")
+  updatedBy       String    @map("updated_by")
+  deletedBy       String?   @map("deleted_by")
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@map("user")
+}
